@@ -1,0 +1,61 @@
+gui-title: 'Example Custom GUI'
+rows: 6
+pattern:
+  - '000000000'
+  - '0000a0000'
+  - '0000b0000'
+  - '000000000'
+  - '000000000'
+  - '000000000'
+contents:
+  'a':
+    id: gui_item
+    args:
+      placeholders:
+        value: '%lighteconomy_eco_top_1_value%'
+        name: '%lighteconomy_eco_top_1_name%'
+      item: 'player_head 1 hide_attributes'
+      head-data: '#name#'
+      display-name: '<red>#1 <gray>#name#'
+      lore:
+        - '<gray>This is a lore #value#'
+      click-actions:
+        '0':
+          click-type: left_click
+          requirements:
+            '0':
+              type: permission
+              data: 'example.permission'
+              fail-actions:
+                - 'message;<red>You do not have the permission to do this!'
+            '1':
+              type: math
+              data: '%vault_money% > 50'
+              fail-actions:
+                - 'message;<red>You do not have enough money!'
+          actions:
+            - 'message;<green>Congratulations! You have enough money and permission! - Left Click'
+  'b':
+    id: gui_item
+    args:
+      placeholders: [ ]
+      item: 'player_head 1 hide_attributes'
+      head-data: ''
+      display-name: '<red>#1 <gray>TEST'
+      lore:
+        - '<gray>This is a lore'
+      click-actions:
+        '0':
+          click-type: left_click
+          requirements: [ ]
+          actions:
+            - 'message;<green>Congratulations! You have enough money and permission! - Left Click'
+  '0':
+    id: gui_item
+    args:
+      placeholders: [ ]
+      item: 'black_stained_glass_pane 1 hide_attributes'
+      head-data: '#name#'
+      display-name: ''
+      lore: [ ]
+      click-actions: [ ]
