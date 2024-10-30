@@ -3,6 +3,7 @@ package io.lightplugins.reports.modules.reports.commands;
 import io.lightplugins.reports.Light;
 import io.lightplugins.reports.modules.reports.LightReports;
 import io.lightplugins.reports.modules.reports.enums.ReportStatus;
+import io.lightplugins.reports.modules.reports.inv.HistoryInventory;
 import io.lightplugins.reports.modules.reports.inv.OverviewInventory;
 import io.lightplugins.reports.modules.reports.manager.ReportManager;
 import io.lightplugins.reports.util.SubCommand;
@@ -13,20 +14,20 @@ import org.bukkit.entity.Player;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
-public class ReportResolveCommand extends SubCommand {
+public class ReportHistoryCommand extends SubCommand {
     @Override
     public List<String> getName() {
-        return List.of("resolve");
+        return List.of("history");
     }
 
     @Override
     public String getDescription() {
-        return "Opens a GUI with open reports.";
+        return "Opens a GUI with closed reports.";
     }
 
     @Override
     public String getSyntax() {
-        return "/report resolve";
+        return "/report history";
     }
 
     @Override
@@ -46,7 +47,7 @@ public class ReportResolveCommand extends SubCommand {
             if(!commandSender.hasPermission(getPermission())) {
                 return null;
             }
-            return List.of("resolve");
+            return List.of("history");
         };
     }
 
@@ -54,16 +55,17 @@ public class ReportResolveCommand extends SubCommand {
     public boolean performAsPlayer(Player player, String[] args) throws ExecutionException, InterruptedException {
 
         List<ReportManager> closedReports = LightReports.instance.getReportCache().stream()
-                .filter(reportManager -> reportManager.getStatus().equals(ReportStatus.OPEN))
+                .filter(reportManager -> reportManager.getStatus().equals(ReportStatus.ACCEPTED)
+                        || reportManager.getStatus().equals(ReportStatus.REJECTED))
                 .toList();
 
         if(closedReports.isEmpty()) {
-            Light.getMessageSender().sendPlayerMessage(LightReports.getMessageParams().reportOverviewEmpty(), player);
+            Light.getMessageSender().sendPlayerMessage(LightReports.getMessageParams().reportHistoryEmpty(), player);
             return false;
         }
 
-        OverviewInventory overviewInventory = new OverviewInventory(player);
-        overviewInventory.openInventory();
+        HistoryInventory historyInventory = new HistoryInventory(player);
+        historyInventory.openInventory();
 
         return false;
     }

@@ -1,61 +1,83 @@
-gui-title: 'Example Custom GUI'
-rows: 6
+gui-title: '<#ffdc73><bold>lightReports <reset><gray>➜ <#ffdc73>Menü'
 pattern:
   - '000000000'
-  - '0000a0000'
-  - '0000b0000'
+  - '0000f0000'
   - '000000000'
+  - '00c0e0d00'
   - '000000000'
-  - '000000000'
+  - '0a00b0000'
+background-items: true
 contents:
-  'a':
-    id: gui_item
+  back:
     args:
-      placeholders:
-        value: '%lighteconomy_eco_top_1_value%'
-        name: '%lighteconomy_eco_top_1_name%'
-      item: 'player_head 1 hide_attributes'
-      head-data: '#name#'
-      display-name: '<red>#1 <gray>#name#'
+      pattern-id: a
+      placeholders: [ ]
+      item: 'redstone 1 hide_attributes'
+      head-data: ''
+      display-name: '<red><bold>┃<reset> <red>Back'
+      lore: [ ]
+      actions:
+        - 'open;overview'
+  info:
+    args:
+      pattern-id: b
+      placeholders: [ ]
+      item: 'book 1 hide_attributes'
+      head-data: ''
+      display-name: '<#ffdc73><bold>┃<reset> <#ffdc73>Information'
       lore:
-        - '<gray>This is a lore #value#'
-      click-actions:
-        '0':
-          click-type: left_click
-          requirements:
-            '0':
-              type: permission
-              data: 'example.permission'
-              fail-actions:
-                - 'message;<red>You do not have the permission to do this!'
-            '1':
-              type: math
-              data: '%vault_money% > 50'
-              fail-actions:
-                - 'message;<red>You do not have enough money!'
-          actions:
-            - 'message;<green>Congratulations! You have enough money and permission! - Left Click'
-  'b':
-    id: gui_item
+        - '<gray>- How does lighReports work?'
+        - ''
+        - '<#ffdc73>TODO'
+      actions: [ ]
+  accept:
     args:
+      pattern-id: c
+      placeholders: [ ]
+      item: 'lime_dye 1 hide_attributes'
+      head-data: ''
+      display-name: '<green><bold>┃<reset> <green>Accept the report'
+      lore:
+        - ''
+        - '<green><bold>┃<reset> <gray>Click to <green>accept <gray>the report.'
+        - '<green><bold>┃<reset> <gray>The player <green>will <gray>be punished.'
+      actions:
+        - 'report;accept'
+  deny:
+    args:
+      pattern-id: d
+      placeholders: [ ]
+      item: 'red_dye 1 hide_attributes'
+      head-data: ''
+      display-name: '<red><bold>┃<reset> <red>Deny the report'
+      lore:
+        - ''
+        - '<red><bold>┃<reset> <gray>Click to <red>deny <gray>the report.'
+        - '<red><bold>┃<reset> <gray>The player will <red>not <gray>be punished.'
+      actions:
+        - 'report;deny'
+  delete:
+    args:
+      pattern-id: e
+      placeholders: [ ]
+      item: 'barrier 1 hide_attributes'
+      head-data: ''
+      display-name: '<dark_red><bold>┃<reset> <dark_red>Delete the report'
+      lore:
+        - ''
+        - '<dark_red><bold>┃<reset> <gray>Click to <dark_red>delete <gray>the report from'
+        - '<dark_red><bold>┃<reset> <gray>the storage and history.'
+        - '<dark_red><bold>┃<reset> <gray>The player will <red>not <gray>be punished.'
+      actions:
+        - 'report;delete'
+  reported-user:
+    args:
+      pattern-id: f
       placeholders: [ ]
       item: 'player_head 1 hide_attributes'
       head-data: ''
-      display-name: '<red>#1 <gray>TEST'
+      display-name: '<red>#name#'
       lore:
-        - '<gray>This is a lore'
-      click-actions:
-        '0':
-          click-type: left_click
-          requirements: [ ]
-          actions:
-            - 'message;<green>Congratulations! You have enough money and permission! - Left Click'
-  '0':
-    id: gui_item
-    args:
-      placeholders: [ ]
-      item: 'black_stained_glass_pane 1 hide_attributes'
-      head-data: '#name#'
-      display-name: ''
-      lore: [ ]
-      click-actions: [ ]
+        - '<red><bold>┃<reset> <gray>Decide what to do'
+        - '<red><bold>┃<reset> <gray>with the report.'
+      actions: [ ]

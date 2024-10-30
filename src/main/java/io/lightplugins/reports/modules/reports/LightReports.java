@@ -2,6 +2,7 @@ package io.lightplugins.reports.modules.reports;
 
 import io.lightplugins.reports.Light;
 import io.lightplugins.reports.modules.reports.commands.ReportCommand;
+import io.lightplugins.reports.modules.reports.commands.ReportHistoryCommand;
 import io.lightplugins.reports.modules.reports.commands.ReportReloadCommand;
 import io.lightplugins.reports.modules.reports.commands.ReportResolveCommand;
 import io.lightplugins.reports.modules.reports.config.MessageParams;
@@ -15,10 +16,7 @@ import io.lightplugins.reports.util.manager.FileManager;
 import lombok.Getter;
 import org.bukkit.command.PluginCommand;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 public class LightReports implements LightModule {
 
@@ -28,7 +26,6 @@ public class LightReports implements LightModule {
     public final String moduleName = "report";
     public final String adminPerm = "lightreports." + moduleName + ".admin";
     public final String supporterPerm = "lightreports." + moduleName + ".support";
-    public final String tablePrefix = "lightreports_";
     private final ArrayList<SubCommand> subCommands = new ArrayList<>();
     @Getter
     private final List<ReportManager> reportCache = new ArrayList<>();
@@ -49,6 +46,8 @@ public class LightReports implements LightModule {
     private FileManager resolveInventory;
     @Getter
     private FileManager overviewInventory;
+    @Getter
+    private FileManager historyInventory;
 
     @Override
     public void enable() {
@@ -76,9 +75,7 @@ public class LightReports implements LightModule {
     }
 
     @Override
-    public void disable() {
-
-    }
+    public void disable() { }
 
     @Override
     public void reload() {
@@ -92,7 +89,13 @@ public class LightReports implements LightModule {
         Light.getConsolePrinting().print(Light.consolePrefix +
                 "Successfully reloaded " + this.moduleName + " module!");
         storage.reloadConfig(moduleName + "/storage.yml");
+
+        // clear and regenerate the report cache
         loadReportCache();
+
+        resolveInventory.reloadConfig(moduleName + "/inventories/report-handle.yml");
+        overviewInventory.reloadConfig(moduleName + "/inventories/report-overview.yml");
+        historyInventory.reloadConfig(moduleName + "/inventories/report-history.yml");
     }
 
     @Override
@@ -107,14 +110,17 @@ public class LightReports implements LightModule {
 
     private void initFiles() {
 
+        // Create the default files for the module if they do not exist.
         settings = new FileManager(
                 Light.instance, moduleName + "/settings.yml", true);
         storage = new FileManager(
                 Light.instance, moduleName + "/storage.yml", false);
         resolveInventory = new FileManager(
-                Light.instance, moduleName + "/inventories/report-handle.yml", true);
+                Light.instance, moduleName + "/inventories/report-handle.yml", false);
         overviewInventory = new FileManager(
-                Light.instance, moduleName + "/inventories/report-overview.yml", true);
+                Light.instance, moduleName + "/inventories/report-overview.yml", false);
+        historyInventory = new FileManager(
+                Light.instance, moduleName + "/inventories/report-history.yml", false);
 
     }
 
@@ -128,19 +134,21 @@ public class LightReports implements LightModule {
         subCommands.add(new ReportReloadCommand());
         subCommands.add(new ReportCommand());
         subCommands.add(new ReportResolveCommand());
+        subCommands.add(new ReportHistoryCommand());
         new CommandManager(moduleCommand, subCommands);
     }
 
     private void loadReportCache() {
         // Load all reports from the storage file
-        // Objects.requireNonNull() just used for simple check -> changing in the future to a more complex check
+        // Objects.requireNonNull() just used for simple check → changing in the future to a more complex check.
 
-        // Check if the reports section is empty -> skipp on load
-        if(Objects.requireNonNull(storage.getConfig().getConfigurationSection("reports")).getKeys(false).isEmpty()) {
+        // Check if the reports section is empty → skipp on load.
+        if(storage.getConfig().getConfigurationSection("reports") == null) {
             Light.getConsolePrinting().print("No reports found in storage file. Skipping cache ...");
             return;
         }
 
+        // Clear the cache if it is not empty on module reload.
         if(!getReportCache().isEmpty()) {
             getReportCache().clear();
         }
@@ -148,15 +156,21 @@ public class LightReports implements LightModule {
         int amount = 0;
 
         for(String path : Objects.requireNonNull(storage.getConfig().getConfigurationSection("reports")).getKeys(false)) {
+            // create the report manager from the storage file
             ReportManager reportManager = new ReportManager(
                     UUID.fromString(path),
                     UUID.fromString(Objects.requireNonNull(storage.getConfig().getString("reports." + path + ".reporter"))),
                     UUID.fromString(Objects.requireNonNull(storage.getConfig().getString("reports." + path + ".reported"))),
                     storage.getConfig().getString("reports." + path + ".reason"),
-                    Objects.equals(storage.getConfig().getString("reports." + path + ".resolvedBy"), "") ?
-                            null : UUID.fromString(Objects.requireNonNull(storage.getConfig().getString("reports." + path + ".resolvedBy"))),
-                    ReportStatus.valueOf(storage.getConfig().getString("reports." + path + ".status"))
+                    Objects.equals(storage.getConfig().getString(
+                            "reports." + path + ".resolvedBy"), "") ? null
+                            : UUID.fromString(Objects.requireNonNull(storage.getConfig().getString("reports." + path + ".resolvedBy"))),
+                    ReportStatus.valueOf(storage.getConfig().getString("reports." + path + ".status").toUpperCase())
             );
+            // Set the create and solve date from the storage.yml
+            reportManager.setCreateDate(new Date(storage.getConfig().getLong("reports." + path + ".created")));
+            reportManager.setSolveDate(new Date(storage.getConfig().getLong("reports." + path + ".solved")));
+            // Add the report to the cache
             reportCache.add(reportManager);
             amount ++;
         }

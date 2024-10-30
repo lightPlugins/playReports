@@ -6,16 +6,18 @@ import io.lightplugins.reports.modules.reports.enums.ReportStatus;
 import io.lightplugins.reports.modules.reports.manager.ReportManager;
 import io.lightplugins.reports.util.SubCommand;
 import org.bukkit.Bukkit;
+import org.bukkit.Sound;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ReportCommand extends SubCommand {
 
-    private List<Player> onCooldown = new ArrayList<>();
+    private final List<Player> onCooldown = new ArrayList<>();
 
     @Override
     public List<String> getName() {
@@ -47,10 +49,6 @@ public class ReportCommand extends SubCommand {
     public TabCompleter registerTabCompleter() {
         return (commandSender, command, s, args) -> {
 
-            if(!commandSender.hasPermission(getPermission())) {
-                return null;
-            }
-
             if (args.length == 1) {
                 // return the names of all online players
                 return getName();
@@ -76,12 +74,13 @@ public class ReportCommand extends SubCommand {
     public boolean performAsPlayer(Player player, String[] args) throws ExecutionException, InterruptedException {
 
         // check if the player is not reporting himself
-        if(player.getName().equalsIgnoreCase(args[0])) {
+        // REMOVE “!" for public usage!!!
+        if(!player.getName().equalsIgnoreCase(args[1])) {
             Light.getMessageSender().sendPlayerMessage(LightReports.getMessageParams().cannotReportSelf(), player);
             return false;
         }
 
-        // check if reason is valid -> ReportStatus
+        // check if reason is valid → ReportStatus
         boolean validReason = false;
         for (String reason : LightReports.getSettingParams().defaultWrapper().getReportReasons()) {
             if (reason.equalsIgnoreCase(args[2])) {
@@ -113,11 +112,12 @@ public class ReportCommand extends SubCommand {
             return false;
         }
 
-        // check if target is alreay reported by the same reason
+        // check if target is already reported with the same reason and status is OPEN
         for(ReportManager reportManager : LightReports.instance.getReportCache()) {
             if(reportManager.getReporter().equals(player.getUniqueId()) &&
                     reportManager.getReported().equals(target.getUniqueId()) &&
-                    reportManager.getReason().equalsIgnoreCase(args[2])) {
+                    reportManager.getReason().equalsIgnoreCase(args[2]) &&
+                    reportManager.getStatus().equals(ReportStatus.OPEN)) {
                 Light.getMessageSender().sendPlayerMessage(LightReports.getMessageParams().alreadyReported()
                         .replace("#player#", target.getName())
                         .replace("#reason#", args[2]), player);
@@ -126,7 +126,6 @@ public class ReportCommand extends SubCommand {
         }
 
         // create new Report
-
         UUID reporter = player.getUniqueId();
         UUID reported = target.getUniqueId();
         String reason = args[2];
@@ -145,7 +144,35 @@ public class ReportCommand extends SubCommand {
 
         // add player to cooldown and remove him after 60 seconds
         onCooldown.add(player);
-        Bukkit.getScheduler().runTaskLater(Light.instance, () -> onCooldown.remove(player), 20 * 60);
+        int cooldownTime = LightReports.getSettingParams().defaultWrapper().getCooldownTime();
+        Bukkit.getScheduler().runTaskLater(Light.instance, () -> onCooldown.remove(player), 20L * cooldownTime);
+
+        for(Player audience : Bukkit.getOnlinePlayers()) {
+            if(player.hasPermission(LightReports.instance.supporterPerm)) {
+                Light.getMessageSender().sendPlayerMessage(LightReports.getMessageParams().onReportNotificationMessage()
+                        .replace("#player#", player.getName())
+                        .replace("#reporter#", player.getName())
+                        .replace("#reported#", target.getName())
+                        .replace("#reason#", reason), player);
+
+                Light.getMessageSender().sendTitleMessage(
+                        LightReports.getMessageParams().onReportNotificationTitleUpper(),
+                        LightReports.getMessageParams().onReportNotificationTitleLower(), audience);
+
+                AtomicInteger count = new AtomicInteger();
+
+                int[] taskId = new int[1];
+                taskId[0] = Bukkit.getScheduler().runTaskTimer(Light.instance, () -> {
+                    count.getAndIncrement();
+                    if(count.get() == 4) {
+                        Bukkit.getScheduler().cancelTask(taskId[0]);
+                    }
+                    audience.playSound(audience.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 1.0f, 0.5f);
+                }, 0L, 3L).getTaskId(); // 20L is the delay between each sound (1 second)
+            }
+        }
+
+
 
         return false;
     }

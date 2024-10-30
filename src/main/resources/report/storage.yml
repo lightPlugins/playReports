@@ -1,7 +1,1 @@
-reports:
-  '9ab94df1-8251-4593-a496-b255af862145':
-    reporter: '4e2080e7-104d-45f5-a97f-3d969805a1d7'
-    reported: 'f2393877-9e4f-42f0-8f38-4659495e9537'
-    reason: 'Hacking'
-    resolvedBy: ''
-    status: 'OPEN'
+reports: [ ]

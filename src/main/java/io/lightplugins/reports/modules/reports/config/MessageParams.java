@@ -21,5 +21,12 @@ public class MessageParams {
     public String invalidReason() { return config.getString("invalidReason"); }
     public String onCooldown() { return config.getString("onCooldown"); }
     public String alreadyReported() { return config.getString("alreadyReported"); }
+    public String reportAccepted() { return config.getString("reportAccepted"); }
+    public String reportDenied() { return config.getString("reportDenied"); }
+    public String reportHistoryEmpty() { return config.getString("reportHistoryEmpty"); }
+    public String reportOverviewEmpty() { return config.getString("reportOverviewEmpty"); }
+    public String onReportNotificationTitleUpper() { return config.getString("onReportNotification.title.title-upper"); }
+    public String onReportNotificationTitleLower() { return config.getString("onReportNotification.title.title-lower"); }
+    public String onReportNotificationMessage() { return config.getString("onReportNotification.message"); }
 }
 

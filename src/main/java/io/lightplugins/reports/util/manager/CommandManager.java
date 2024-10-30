@@ -3,7 +3,6 @@ package io.lightplugins.reports.util.manager;
 import io.lightplugins.reports.Light;
 import io.lightplugins.reports.modules.reports.LightReports;
 import io.lightplugins.reports.util.CompositeTabCompleter;
-import io.lightplugins.reports.util.NumberFormatter;
 import io.lightplugins.reports.util.SubCommand;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
@@ -23,9 +22,10 @@ public class CommandManager implements CommandExecutor {
     private void registerCommand(PluginCommand command) {
         if (command != null) {
             command.setExecutor(this);
-            Map<String, TabCompleter> subCommandTabCompleters = new HashMap<>();
-            List<String> ecoSubCommands = new ArrayList<>(); // Liste der Subcommands von /eco
+            Map<String, TabCompleter> subCommandTabCompletes = new HashMap<>();
+            List<String> ecoSubCommands = new ArrayList<>();
 
+            //  just for debugging
             Light.getDebugPrinting().print(
                     "Successfully registered command " + command.getName());
 
@@ -34,7 +34,7 @@ public class CommandManager implements CommandExecutor {
                 if (tabCompleter != null) {
                     List<String> subCommandNames = subCommand.getName();
                     for (String subCommandName : subCommandNames) {
-                        subCommandTabCompleters.put(subCommandName, tabCompleter);
+                        subCommandTabCompletes.put(subCommandName, tabCompleter);
                         ecoSubCommands.add(subCommandName); // Füge den Subcommand-Namen zur Liste hinzu
                         Light.getDebugPrinting().print(
                                 "Successfully registered tab completer for " + subCommandName);
@@ -42,8 +42,8 @@ public class CommandManager implements CommandExecutor {
                 }
             }
 
-            if (!subCommandTabCompleters.isEmpty()) {
-                command.setTabCompleter(new CompositeTabCompleter(subCommandTabCompleters, ecoSubCommands));
+            if (!subCommandTabCompletes.isEmpty()) {
+                command.setTabCompleter(new CompositeTabCompleter(subCommandTabCompletes, ecoSubCommands));
             }
         }
     }
@@ -66,7 +66,8 @@ public class CommandManager implements CommandExecutor {
                     if (subCommand.getName().contains(args[0])) {
 
                         if (sender instanceof Player player) {
-                            if(player.hasPermission(subCommand.getPermission())) {
+                            if(player.hasPermission(subCommand.getPermission())
+                                    || subCommand.getPermission().equalsIgnoreCase("")) {
                                 if(args.length != subCommand.maxArgs()) {
                                     Light.getMessageSender().sendPlayerMessage(
                                             LightReports.getMessageParams().wrongSyntax()
@@ -77,7 +78,8 @@ public class CommandManager implements CommandExecutor {
                                     subCommand.performAsPlayer(player, args);
                                     return true;
                                 } catch (ExecutionException | InterruptedException e) {
-                                    throw new RuntimeException("Something went wrong in executing " + Arrays.toString(args), e);
+                                    throw new RuntimeException("Something went wrong in executing "
+                                            + Arrays.toString(args), e);
                                 }
                             } else {
                                 Light.getMessageSender().sendPlayerMessage(
@@ -92,7 +94,8 @@ public class CommandManager implements CommandExecutor {
                                 subCommand.performAsConsole(console, args);
                                 return true;
                             } catch (ExecutionException | InterruptedException e) {
-                                throw new RuntimeException("Something went wrong in executing " + Arrays.toString(args), e);
+                                throw new RuntimeException("Something went wrong in executing "
+                                        + Arrays.toString(args), e);
                             }
                         }
                     }

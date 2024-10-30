@@ -2,6 +2,8 @@ package io.lightplugins.reports.util.manager;
 
 import io.lightplugins.reports.Light;
 import io.lightplugins.reports.util.NumberFormatter;
+import lombok.Getter;
+import lombok.Setter;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -20,7 +22,10 @@ public class ClickGuiStack {
     private final Player player;
     private String item;
     private String headData;
+    @Getter
+    @Setter
     private String displayName;
+    @Getter
     private List<String> lore = new ArrayList<>();
     private final Map<String, String> placeholders = new HashMap<>();
     private boolean playerHead = false;

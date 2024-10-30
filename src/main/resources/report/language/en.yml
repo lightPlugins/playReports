@@ -8,3 +8,13 @@ reportSuccess: '<gray>You reported <#ffdc73>#player#<gray> for <#ffdc73>#reason#
 invalidReason: '<red>Invalid report status <dark_red>#status#<red>!'
 onCooldown: '<red>You are on cooldown! Please wait <dark_red>#time#<red> seconds before reporting again!'
 alreadyReported: '<red>You have already reported <dark_red>#player#<red> for <dark_red>#reason#<red>!'
+reportAccepted: '<gray>The report against <#ffdc73>#player#<gray> has been <green>accepted<gray>!'
+reportDenied: '<gray>The report against <#ffdc73>#player#<gray> has been <red>denied<gray>!'
+reportDeleted: '<gray>The report against <#ffdc73>#player#<gray> has been <red>deleted<gray>!'
+reportHistoryEmpty: '<red>The report history is empty!'
+reportOverviewEmpty: '<red>The report overview is empty!'
+onReportNotification:
+  title:
+    title-upper: '<red>Player Report'
+    title-lower: '<white>Take a look into the chat!'
+  message: '<#ffdc73>#reporter# <red>has reported <#ffdc73>#player# <red>for <#ffdc73>#reason#<red>!'

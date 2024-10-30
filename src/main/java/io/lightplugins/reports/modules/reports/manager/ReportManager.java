@@ -3,7 +3,11 @@ package io.lightplugins.reports.modules.reports.manager;
 import io.lightplugins.reports.modules.reports.LightReports;
 import io.lightplugins.reports.modules.reports.enums.ReportStatus;
 import lombok.Getter;
+import lombok.Setter;
+import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 
+import java.util.Date;
 import java.util.UUID;
 
 @Getter
@@ -13,8 +17,12 @@ public class ReportManager {
     private final UUID reporter;
     private final UUID reported;
     private final String reason;
-    private final UUID resolvedBy;
-    private final ReportStatus status;
+    private UUID resolvedBy;
+    private ReportStatus status;
+    @Setter
+    private Date createDate;
+    @Setter
+    private Date solveDate;
 
     public ReportManager(
             UUID reportID,
@@ -42,6 +50,11 @@ public class ReportManager {
         LightReports.instance.getStorage().getConfig().set("reports." + reportID + ".resolvedBy",
                 resolvedBy == null ? "" : resolvedBy.toString());
         LightReports.instance.getStorage().getConfig().set("reports." + reportID + ".status", status.getType().toUpperCase());
+        LightReports.instance.getStorage().getConfig().set("reports." + reportID + ".created", System.currentTimeMillis());
+        LightReports.instance.getStorage().getConfig().set("reports." + reportID + ".solved", 0);
+
+        this.createDate = new Date(System.currentTimeMillis());
+
         LightReports.instance.getStorage().saveConfig();
 
     }
@@ -58,10 +71,22 @@ public class ReportManager {
 
     public void setSolved(UUID resolvedBy, ReportStatus reportStatus) {
 
-        LightReports.instance.getStorage().getConfig().set("reports." + reportID + ".solvedBy", resolvedBy.toString());
+        LightReports.instance.getStorage().getConfig().set("reports." + reportID + ".resolvedBy", resolvedBy.toString());
         LightReports.instance.getStorage().getConfig().set("reports." + reportID + ".status", reportStatus.getType());
+        LightReports.instance.getStorage().getConfig().set("reports." + reportID + ".solved", System.currentTimeMillis());
+
+        this.resolvedBy = resolvedBy;
+        this.solveDate = new Date(System.currentTimeMillis());
+        this.status = reportStatus;
+        this.solveDate = new Date(System.currentTimeMillis());
+
         LightReports.instance.getStorage().saveConfig();
 
+    }
+
+    public String getReportedName() {
+        OfflinePlayer offlinePlayer = Bukkit.getPlayer(reported);
+        return offlinePlayer == null ? "Unknown" : offlinePlayer.getName();
     }
 
 }

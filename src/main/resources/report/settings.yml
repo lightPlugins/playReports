@@ -6,7 +6,7 @@
 module-language: en
 # The report cooldown in seconds to prevent report spamming.
 report-cooldown: 5
-# The reason for the report itself.
+# The reason types that can be used for reports.
 report-reasons:
   - 'Hacking'
   - 'Chatverhalten'

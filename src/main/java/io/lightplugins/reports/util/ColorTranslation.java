@@ -66,6 +66,13 @@ public class ColorTranslation {
         return mm.deserialize(message);
     }
 
+    /**
+     * A method to translate the lore line to the player's language.
+     *
+     * @param line the lore line to be translated
+     * @param player the player to translate the lore line to
+     * @return the translated lore line
+     */
     public String loreLineTranslation(String line, Player player) {
         Component parsed = MiniMessage.miniMessage().deserialize(line);
         return PlaceholderAPI.setPlaceholders(player, ChatColor.translateAlternateColorCodes('&', LegacyComponentSerializer.legacyAmpersand().serialize(parsed)));

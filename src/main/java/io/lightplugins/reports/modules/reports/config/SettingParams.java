@@ -8,16 +8,17 @@ public class SettingParams {
 
     private final LightReports lightReports;
 
+    // Master Params from the settings.yml file (module file)
     public SettingParams(LightReports lightReports) {
         this.lightReports = lightReports;
     }
-
     public String getModuleLanguage() {
         return lightReports.getSettings().getConfig().getString("module-language");
     }
 
-    public DefaultWrapper defaultWrapper() { return new DefaultWrapper(); }
 
+    // DefaultWrapper class for the settings.yml file (module file)
+    public DefaultWrapper defaultWrapper() { return new DefaultWrapper(); }
     public class DefaultWrapper {
 
         public List<String> getReportReasons() {

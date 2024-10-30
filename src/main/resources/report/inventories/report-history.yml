@@ -1,11 +1,11 @@
-gui-title: '<#ffdc73><bold>lightReports <reset><gray>➜ <#ffdc73>Overview'
+gui-title: '<#ffdc73><bold>lightReports <reset><gray>➜ <#ffdc73>History'
 pattern:
   - '000000000'
   - '000000000'
   - '000000000'
   - '000000000'
   - '000000000'
-  - 'b0c0a0d00'
+  - 'b000a0000'
 background-items: true
 fill-items:
   start-pos:
@@ -25,9 +25,8 @@ fill-items:
         - '<#ffdc73><bold>┃<reset> <gray>Reported at: <#ffdc73>#created#'
         - '<#ffdc73><bold>┃<reset> <gray>Reason: <#ffdc73>#reason#'
         - '<#ffdc73><bold>┃<reset> <gray>Status: <#ffdc73>#status#'
-        - ''
-        - '<#ffdc73><bold>➜<reset> <#ffdc73>Click to edit the report'
-
+        - '<#ffdc73><bold>┃<reset> <gray>Solved at: <#ffdc73>#solved#'
+        - '<#ffdc73><bold>┃<reset> <gray>Solved by: <#ffdc73>#solver#'
     actions: [ ]
 contents:
   back:
@@ -48,7 +47,7 @@ contents:
       head-data: ''
       display-name: '<#ffdc73><bold>┃<reset> <#ffdc73>Information'
       lore:
-        - '<gray>- How does lighReports work?'
+        - '<gray>How does lighReports work?'
         - ''
         - '<#ffdc73>TODO'
       actions: [ ]

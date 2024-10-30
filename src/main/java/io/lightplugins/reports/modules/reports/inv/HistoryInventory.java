@@ -3,9 +3,12 @@ package io.lightplugins.reports.modules.reports.inv;
 import com.github.stefvanschie.inventoryframework.gui.GuiItem;
 import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
 import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
+import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
 import com.github.stefvanschie.inventoryframework.pane.Pane;
 import com.github.stefvanschie.inventoryframework.pane.PatternPane;
+import com.github.stefvanschie.inventoryframework.pane.component.PagingButtons;
 import com.github.stefvanschie.inventoryframework.pane.util.Pattern;
+import com.github.stefvanschie.inventoryframework.pane.util.Slot;
 import io.lightplugins.reports.Light;
 import io.lightplugins.reports.modules.reports.LightReports;
 import io.lightplugins.reports.modules.reports.enums.ReportStatus;
@@ -23,24 +26,25 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.profile.PlayerProfile;
 import org.bukkit.scheduler.BukkitTask;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
-public class HandlingInventory {
+public class HistoryInventory {
 
     private final ChestGui gui = new ChestGui(6, "Init");
     private final Player player;
-    private final ReportManager reportManager;
     private BukkitTask bukkitTask;
 
-    public HandlingInventory(Player player, ReportManager reportManager) {
+    public HistoryInventory(Player player) {
         this.player = player;
-        this.reportManager = reportManager;
     }
 
     public void openInventory() {
-        // Open the inventory
-        FileConfiguration conf = LightReports.instance.getResolveInventory().getConfig();
+
+        FileConfiguration conf = LightReports.instance.getHistoryInventory().getConfig();
         String title = Light.instance.colorTranslation.loreLineTranslation(
                 Objects.requireNonNull(conf.getString("gui-title")), player);
 
@@ -74,13 +78,8 @@ public class HandlingInventory {
             String patternID = report.getPatternID();
             List<String> actions = report.getActions();
 
-            report.setDisplayName(report.getDisplayName()
-                    .replace("#name#", reportManager.getReportedName())
-            );
-
             if (report.getGuiItem().getItemMeta() instanceof SkullMeta skullMeta) {
-                OfflinePlayer reported = Bukkit.getOfflinePlayer(reportManager.getReported());
-                PlayerProfile playerProfile = Bukkit.createPlayerProfile(reported.getName() == null ? "Gronkh" : reported.getName());
+                PlayerProfile playerProfile = Bukkit.createPlayerProfile("LightningDesign");
                 skullMeta.setOwnerProfile(playerProfile);
                 report.getGuiItem().setItemMeta(skullMeta);
                 itemStack.setItemMeta(skullMeta);
@@ -100,51 +99,73 @@ public class HandlingInventory {
                         actionSplit = action.split(";");
                     }
 
-                    if(actionSplit[0].equalsIgnoreCase("report")) {
-
-                        if(actionSplit[1].equalsIgnoreCase("accept")) {
-                            Light.getMessageSender().sendPlayerMessage(LightReports.getMessageParams().reportAccepted()
-                                    .replace("#player#", reportManager.getReportedName()), player);
-                            reportManager.setSolved(player.getUniqueId(), ReportStatus.ACCEPTED);
-                            player.closeInventory();
-                            return;
-                        }
-
-                        if(actionSplit[1].equalsIgnoreCase("deny")) {
-                            Light.getMessageSender().sendPlayerMessage(LightReports.getMessageParams().reportDenied()
-                                    .replace("#player#", reportManager.getReportedName()), player);
-                            reportManager.setSolved(player.getUniqueId(), ReportStatus.REJECTED);
-                            player.closeInventory();
-                            return;
-                        }
-
-                        if(actionSplit[1].equalsIgnoreCase("delete")) {
-                            Light.getMessageSender().sendPlayerMessage(LightReports.getMessageParams().reportDenied()
-                                    .replace("#player#", reportManager.getReportedName()), player);
-                            player.closeInventory();
-                            reportManager.deleteReportEntry();
-                            LightReports.instance.getReportCache().remove(reportManager);
-                            return;
-                        }
-                    }
-
-                    if(actionSplit[0].equalsIgnoreCase("open")) {
-
-                        if(actionSplit[1].equalsIgnoreCase("overview")) {
-                            new OverviewInventory(player).openInventory();
-                            return;
-                        }
-                    }
-
                     if(action.equalsIgnoreCase("close")) {
                         player.closeInventory();
                         return;
                     }
                 }
+            }));
+        }
+
+        PaginatedPane itemContents = new PaginatedPane(1, 1, 7, 3);
+        PagingButtons pagingButtons = new PagingButtons(Slot.fromXY(2, 5), 5, itemContents);
+        List<GuiItem> pageItems = new ArrayList<>();
+
+        for(ReportManager reportManager : LightReports.instance.getReportCache()) {
+
+            if(reportManager.getStatus().equals(ReportStatus.OPEN)) {
+                continue;
+            }
+
+            ClickGuiStack report = new ClickGuiStack(Objects.requireNonNull(
+                    conf.getConfigurationSection("fill-items.click-item")), player);
+
+            ItemStack skullItemStack = report.getGuiItem();
+
+            OfflinePlayer reporter = Bukkit.getOfflinePlayer(reportManager.getReporter());
+            OfflinePlayer reported = Bukkit.getOfflinePlayer(reportManager.getReported());
+            OfflinePlayer solver = Bukkit.getOfflinePlayer(reportManager.getResolvedBy());
+
+            // current date for dummy report “create” date
+            Date createdDate = reportManager.getCreateDate();
+            Date solvedDate = reportManager.getSolveDate();
+            SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+            String createdDateStr = formatter.format(createdDate);
+            String solvedDateStr = formatter.format(solvedDate);
+
+            report.getLore().forEach(line -> {
+                report.getLore().set(report.getLore().indexOf(line), line
+                        .replace("#reporter#", reporter.getName() == null ? "Unknown" : reporter.getName())
+                        .replace("#reported#", reported.getName() == null ? "Unknown" : reported.getName())
+                        .replace("#reason#", reportManager.getReason())
+                        .replace("#created#", createdDateStr)
+                        .replace("#solved#", solvedDateStr)
+                        .replace("#status#", reportManager.getStatus().getType())
+                        .replace("#solver#", solver.getName() == null ? "Unknown" : solver.getName())
+                );
+            });
+
+            report.setDisplayName(report.getDisplayName()
+                    .replace("#id#", reportManager.getReportID().toString())
+            );
+
+            if (report.getGuiItem().getItemMeta() instanceof SkullMeta skullMeta) {
+                PlayerProfile playerProfile = Bukkit.createPlayerProfile(reported.getName() == null ? "Gronkh" : reported.getName());
+                skullMeta.setOwnerProfile(playerProfile);
+                report.getGuiItem().setItemMeta(skullMeta);
+                skullItemStack.setItemMeta(skullMeta);
+            }
+
+            pageItems.add(new GuiItem(skullItemStack, event -> {
 
             }));
         }
+
+        itemContents.populateWithGuiItems(pageItems);
+
         gui.addPane(pane);
+        gui.addPane(itemContents);
+        gui.addPane(pagingButtons);
         gui.show(player);
     }
 }

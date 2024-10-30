@@ -9,11 +9,11 @@ import java.util.List;
 import java.util.Map;
 
 public class CompositeTabCompleter implements TabCompleter {
-    private final Map<String, TabCompleter> subCommandTabCompleters;
+    private final Map<String, TabCompleter> subCommandTabCompletes;
     private final List<String> ecoSubCommands; // Liste der Subcommands von /eco
 
-    public CompositeTabCompleter(Map<String, TabCompleter> subCommandTabCompleters, List<String> ecoSubCommands) {
-        this.subCommandTabCompleters = subCommandTabCompleters;
+    public CompositeTabCompleter(Map<String, TabCompleter> subCommandTabCompletes, List<String> ecoSubCommands) {
+        this.subCommandTabCompletes = subCommandTabCompletes;
         this.ecoSubCommands = ecoSubCommands;
     }
 
@@ -24,7 +24,7 @@ public class CompositeTabCompleter implements TabCompleter {
             return ecoSubCommands;
         } else if (args.length > 1) {
             // Wenn weitere Argumente vorhanden sind, delegieren wir die Tab-Completion an den CompositeTabCompleter
-            TabCompleter tabCompleter = subCommandTabCompleters.get(args[0]); // Holen Sie den TabCompleter für das angegebene Subcommand
+            TabCompleter tabCompleter = subCommandTabCompletes.get(args[0]); // Holen Sie den TabCompleter für das angegebene Subcommand
             if (tabCompleter != null) {
                 return tabCompleter.onTabComplete(sender, command, alias, args);
             }
